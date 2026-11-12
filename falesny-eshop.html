@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MEGA OUTLET – cvičný podvodný e-shop</title>
+<style>
+:root{--bg:#fff7e0;--fg:#1b1b1b;--card:#fff;--red:#e60023;--yel:#ffd400;--mut:#666;--bd:#ddd;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1d1a12;--fg:#f3f0e6;--card:#2a261b;--mut:#aaa;--bd:#444}}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;font-family:Verdana,Arial,sans-serif;background:var(--bg);color:var(--fg)}
+.top{background:var(--red);color:#fff;text-align:center;padding:10px;font-weight:bold}
+.top span{background:var(--yel);color:#000;padding:2px 8px;border-radius:4px}
+header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;flex-wrap:wrap;gap:8px}
+h1{margin:0;font-size:1.5rem;color:var(--red)}
+button{font:inherit;cursor:pointer}
+.cartbtn{background:var(--fg);color:var(--bg);border:0;padding:8px 14px;border-radius:6px}
+main{max-width:960px;margin:0 auto;padding:0 16px 40px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:12px;position:relative}
+.badge{position:absolute;top:8px;left:8px;background:var(--red);color:#fff;font-weight:bold;padding:4px 8px;border-radius:4px}
+.img{height:140px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:4rem;margin-bottom:8px}
+.old{text-decoration:line-through;color:var(--mut)}
+.price{color:var(--red);font-weight:bold;font-size:1.3rem}
+.stock{color:var(--red);font-size:.8rem}
+.buy{width:100%;background:var(--yel);color:#000;border:0;padding:10px;border-radius:6px;font-weight:bold;margin-top:8px}
+.panel{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:16px;margin-top:12px}
+.opts{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 12px}
+.opt{border:2px solid var(--bd);background:var(--card);color:var(--fg);padding:6px 12px;border-radius:6px}
+.opt.on{border-color:var(--red);background:var(--red);color:#fff}
+.dot{width:30px;height:30px;border-radius:50%;padding:0}
+.hide{display:none}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(80px);background:#2e9e4f;color:#fff;padding:10px 18px;border-radius:8px;font-weight:bold;transition:transform .25s;z-index:9}
+#toast.on{transform:translateX(-50%) translateY(0)}
+.rm{background:none;border:0;color:var(--red);margin-left:8px}
+input{font:inherit;width:100%;padding:8px;margin:4px 0 10px;border:1px solid var(--bd);border-radius:6px;background:var(--bg);color:var(--fg)}
+.note{font-size:.8rem;color:var(--mut)}
+.scam{background:var(--red);color:#fff;border-radius:8px;padding:20px;text-align:center}
+.scam h2{margin:0 0 8px;font-size:1.8rem}
+.tips li{margin:8px 0}
+.link{background:none;border:0;color:var(--red);text-decoration:underline;padding:0}
+</style>
+</head>
+<body>
+<div class="top">🔥 MEGA VÝPRODEJ! Sleva až 90 % jen dnes! Končí za <span id="cd">09:59</span></div>
+<header><h1>MEGA OUTLET</h1><button class="cartbtn" id="cartbtn">🛒 Košík (<span id="cnt">0</span>)</button></header>
+<div id="toast">✓</div>
+<main>
+<section id="shop">
+<div class="grid" id="grid"></div>
+<div class="panel" id="pick" hidden></div>
+</section>
+<section id="cart" class="hide"></section>
+<section id="pay" class="hide"></section>
+<section id="end" class="hide"></section>
+</main>
+<script>
+const P=[
+{n:"Tenisky Air Max PRO",e:"👟",o:3990,p:299,s:["38","39","40","41","42"],c:[["Černá","#222"],["Bílá","#eee"],["Červená","#e60023"]]},
+{n:"Mikina Hoodie Original",e:"🧥",o:2490,p:199,s:["S","M","L","XL"],c:[["Šedá","#888"],["Modrá","#2a5bd7"],["Černá","#222"]]},
+{n:"Kšiltovka Street",e:"🧢",o:990,p:79,s:["Univerzální"],c:[["Černá","#222"],["Zelená","#2e9e4f"]]},
+{n:"Batoh City Bag",e:"🎒",o:1890,p:149,s:["20 l","30 l"],c:[["Žlutá","#ffd400"],["Černá","#222"],["Růžová","#ff7ab8"]]}
+];
+const $=id=>document.getElementById(id);
+let cart=[],cur=null,size=null,col=null;
+const kc=n=>n.toLocaleString("cs-CZ")+" Kč";
+$("grid").innerHTML=P.map((x,i)=>`<div class="card"><div class="badge">-${Math.round(100-x.p/x.o*100)} %</div><div class="img" style="background:${x.c[0][1]}33">${x.e}</div><b>${x.n}</b><div><span class="old">${kc(x.o)}</span></div><div class="price">${kc(x.p)}</div><div class="stock">⚠ Zbývají poslední ${2+i} kusy!</div><button class="buy" data-i="${i}">Vybrat</button></div>`).join("");
+$("grid").onclick=e=>{const b=e.target.closest(".buy");if(!b)return;cur=P[b.dataset.i];size=cur.s[0];col=cur.c[0][0];drawPick();};
+function toast(m){const t=$("toast");t.textContent=m;t.classList.add("on");setTimeout(()=>t.classList.remove("on"),1800);}
+function drawPick(){const k=$("pick");k.hidden=false;
+k.innerHTML=`<b>${cur.n}</b> – <span class="price">${kc(cur.p)}</span><div class="note">Velikost</div><div class="opts">${cur.s.map(s=>`<button class="opt ${s==size?"on":""}" data-s="${s}">${s}</button>`).join("")}</div><div class="note">Barva: ${col}</div><div class="opts">${cur.c.map(c=>`<button class="opt dot" title="${c[0]}" data-c="${c[0]}" style="background:${c[1]};${c[0]==col?"outline:3px solid #e60023;outline-offset:2px":""}"></button>`).join("")}</div><button class="buy" id="add">Přidat do košíku</button>`;
+k.scrollIntoView({behavior:"smooth"});}
+$("pick").onclick=e=>{const s=e.target.closest("[data-s]"),c=e.target.closest("[data-c]");
+if(s){size=s.dataset.s;drawPick();}else if(c){col=c.dataset.c;drawPick();}
+else if(e.target.id=="add"){cart.push({n:cur.n,p:cur.p,s:size,c:col});$("cnt").textContent=cart.length;$("pick").hidden=true;toast("✓ Přidáno do košíku");window.scrollTo({top:0,behavior:"smooth"});}};
+$("cartbtn").onclick=()=>show("cart");
+function show(w){["shop","cart","pay","end"].forEach(x=>$(x).classList.toggle("hide",x!=w));
+if(w=="cart")drawCart();if(w=="pay")drawPay();window.scrollTo(0,0);}
+function drawCart(){const t=cart.reduce((a,b)=>a+b.p,0);
+$("cart").innerHTML=`<div class="panel"><h2>Tvůj košík</h2>${cart.length?cart.map((x,i)=>`<p>${x.n} – ${x.s}, ${x.c} – <b>${kc(x.p)}</b><button class="rm" data-r="${i}">✕ odebrat</button></p>`).join("")+`<h3>Celkem: ${kc(t)}</h3><button class="buy" id="go">Pokračovat k platbě</button>`:"<p>Košík je prázdný.</p>"}<p><button class="link" id="back">+ Přidat další zboží</button></p></div>`;
+$("back").onclick=()=>show("shop");$("cart").onclick=e=>{const r=e.target.closest("[data-r]");if(r){cart.splice(+r.dataset.r,1);$("cnt").textContent=cart.length;drawCart();}};if($("go"))$("go").onclick=()=>show("pay");}
+function drawPay(){const t=cart.reduce((a,b)=>a+b.p,0);
+$("pay").innerHTML=`<div class="panel"><h2>Platba – ${kc(t)}</h2><p class="note">🔒 Cvičná stránka: nic se nikam neodesílá. Nepiš sem žádné skutečné údaje, vymysli si cokoli.</p>
+<label>Jméno</label><input id="f1" placeholder="Jan Novák">
+<label>Číslo karty</label><input id="f2" placeholder="1234 5678 9012 3456" inputmode="numeric">
+<button class="buy" id="paybtn">ZAPLATIT TEĎ</button></div>`;
+$("paybtn").onclick=()=>{$("f1").value="";$("f2").value="";show("end");drawEnd();};}
+function drawEnd(){const t=cart.reduce((a,b)=>a+b.p,0);
+$("end").innerHTML=`<div class="scam"><h2>😱 Přišel jsi o peníze!</h2><p>Zaplatil jsi <b>${kc(t)}</b> a nikdy nic nedorazí. Tohle byl falešný e-shop.</p></div>
+<div class="panel"><h3>Podle čeho se dal podvod poznat?</h3><ul class="tips">
+<li><b>Příliš dobré ceny.</b> Sleva 90 % na značkové věci je skoro vždy podvod.</li>
+<li><b>Tlak na rychlost.</b> Odpočet času a „zbývají poslední kusy“ mají zabránit tomu, abys přemýšlel.</li>
+<li><b>Neznámý obchod.</b> Žádné kontakty, firma, IČO, obchodní podmínky ani opravdové recenze.</li>
+<li><b>Platba kartou rovnou neznámému obchodu.</b> Skutečné obchody nabízí i dobírku nebo ověřenou platební bránu.</li>
+</ul>
+<h3>Co dělat, když už se to stane?</h3>
+<ul class="tips"><li>Hned to řekni rodičům, nemusíš se stydět.</li><li>Rodič má zavolat do banky a nechat kartu zablokovat.</li><li>Podvod se dá nahlásit policii.</li></ul>
+<p><button class="link" id="again">Zkusit znovu</button></p></div>`;
+$("again").onclick=()=>{cart=[];$("cnt").textContent=0;show("shop");};}
+let sec=599;setInterval(()=>{sec=sec>0?sec-1:599;$("cd").textContent=String(Math.floor(sec/60)).padStart(2,"0")+":"+String(sec%60).padStart(2,"0");},1000);
+</script>
+</body>
+</html>
